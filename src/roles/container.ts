@@ -9,6 +9,7 @@ import { genericTemplate } from '../golden.vue'
 			vm.groupColor = allocateColor();
 		else if(vm.belongGroupColor)
 			vm.groupColor = vm.belongGroupColor;
+		return {}
 	}
 }]})
 export class goldenContainer extends goldenItem {
@@ -22,7 +23,7 @@ export class goldenContainer extends goldenItem {
 	watchComputeChildrenPath: number = 0
 	computeChildrenPath() { ++this.watchComputeChildrenPath; }
 	childPath(comp: goldenChild): string {
-		this.watchComputeChildrenPath;
+		this.computeChildrenPath();
 		var rv = this.childMe.nodePath?`${this.childMe.nodePath}.`:'';
 		var ndx = this.vueChildren().indexOf(comp);
 		console.assert(!!~ndx, 'Child exists');
@@ -51,10 +52,18 @@ export class goldenContainer extends goldenItem {
 				child.componentState = {};
 		}
 		var ci = this.glChildrenTarget;
-		if(ci)
-			ci.addChild(child);
-		else
-			this.config.content.push(child);
+		if (ci) {
+			ci.addChild(child, undefined, true);
+			const newItemSize = child[ci._dimension]
+			for (let i = 0; i < ci.contentItems.length - 1; i++) {
+				  let itemSize = ci.contentItems[i].config[ci._dimension] *= (100 - newItemSize) / 100;
+				  ci.contentItems[i].config[ci._dimension] = itemSize;
+		  }
+		  ci.callDownwards('setSize');
+		  ci.emitBubblingEvent('stateChanged');
+		} else {
+				this.config.content.push(child);
+		}
 	}
 	get glChildren(): goldenChild[] {
 		return this.glObject.contentItems.map((x : any)=> x.vueObject);
