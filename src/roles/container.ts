@@ -52,10 +52,18 @@ export class goldenContainer extends goldenItem {
 				child.componentState = {};
 		}
 		var ci = this.glChildrenTarget;
-		if(ci)
-			ci.addChild(child);
-		else
-			this.config.content.push(child);
+		if (ci) {
+			ci.addChild(child, undefined, true);
+			const newItemSize = child[ci._dimension]
+			for (let i = 0; i < ci.contentItems.length - 1; i++) {
+				  let itemSize = ci.contentItems[i].config[ci._dimension] *= (100 - newItemSize) / 100;
+				  ci.contentItems[i].config[ci._dimension] = itemSize;
+		  }
+		  ci.callDownwards('setSize');
+		  ci.emitBubblingEvent('stateChanged');
+		} else {
+				this.config.content.push(child);
+		}
 	}
 	get glChildren(): goldenChild[] {
 		return this.glObject.contentItems.map((x : any)=> x.vueObject);
